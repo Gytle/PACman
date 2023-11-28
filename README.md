@@ -15,14 +15,23 @@ Despite its relatively easy implementation, this project offers the possibility 
 # Literature
 
 Scientific framework of neuronal oscillations and phase-amplitude coupling:
+
 Buzsáki, G., & Draguhn, A. (2004). Neuronal Oscillations in Cortical Networks. Science, 304(5679), 1926–1929. https://doi.org/10.1126/science.1099745
+
 Canolty, R. T., & Knight, R. T. (2010). The functional role of cross-frequency coupling. Trends in Cognitive Sciences, 14(11), 506–515. https://doi.org/10.1016/j.tics.2010.09.001
 
+
 Methods for Phase-Amplitude Coupling identification:
+
 Canolty, R. T., Edwards, E., Dalal, S. S., Soltani, M., Nagarajan, S. S., Kirsch, H. E., Berger, M. S., Barbaro, N. M., & Knight, R. T. (2006). High Gamma Power Is Phase-Locked to Theta Oscillations in Human Neocortex. Science, 313(5793), 1626–1628. https://doi.org/10.1126/science.1128115
+
 Tort, A. B. L., Komorowski, R., Eichenbaum, H., & Kopell, N. (2010). Measuring Phase-Amplitude Coupling Between Neuronal Oscillations of Different Frequencies. Journal of Neurophysiology, 104(2), 1195–1210. https://doi.org/10.1152/jn.00106.2010
+
 Penny, W. D., Duzel, E., Miller, K. J., & Ojemann, J. G. (2008). Testing for nested oscillation. Journal of Neuroscience Methods, 174(1), 50–61. https://doi.org/10.1016/j.jneumeth.2008.06.035
+
 Dupré la Tour, T., Tallot, L., Grabot, L., Doyère, V., Wassenhove, V. van, Grenier, Y., & Gramfort, A. (2017). Non-linear auto-regressive models for cross-frequency coupling in neural time series. PLOS Computational Biology, 13(12), e1005893. https://doi.org/10.1371/journal.pcbi.1005893
+
 Munia, T. T. K., & Aviyente, S. (2019). Time-Frequency Based Phase-Amplitude Coupling Measure For Neuronal Oscillations. Scientific Reports, 9(1), Article 1. https://doi.org/10.1038/s41598-019-48870-2
+
 Samiee, S., & Baillet, S. (2017). Time-resolved phase-amplitude coupling in neural oscillations. NeuroImage, 159, 270–279. https://doi.org/10.1016/j.neuroimage.2017.07.051
 Soulat, H., Stephen, E. P., Beck, A. M., & Purdon, P. L. (2022). State space methods for phase amplitude coupling analysis. Scientific Reports, 12(1), Article 1. https://doi.org/10.1038/s41598-022-18475-3
