@@ -23,7 +23,7 @@ X= raw.get_data(picks= channel)
 
 # Select foi and number of cycles per frequency
 freqs= np.arange(0.5, 16.5, 0.5)
-n_cycles=  freqs / 2
+n_cycles=  np.linspace(2, 10, num= len(freqs))
 sfreq= raw.info['sfreq']
 
 # compute wavelets 
