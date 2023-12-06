@@ -1,0 +1,145 @@
+# -- coding: utf-8 --
+"""
+Created on Tue Dec  5 14:24:43 2023
+
+@author: Francesco & Laura
+"""
+#%%  #Import packages
+import os
+import mne
+import pandas as pd
+import numpy as np
+import neurokit2 as nk
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+from scipy.signal import hilbert
+from scipy import signal
+
+#%% Import data
+#cwd = os.getcwd()
+#os.path.join(cwd, "Desktop\\PACman-main\\ecg-20231205T111854Z-001\\ecg")
+datapath = "C:\\Users\\Utente\\Desktop\\PACman-main\\ecg-20231205T111854Z-001\\ecg"
+samples = os.listdir(datapath)
+sub_one_path = os.path.join(datapath, samples[2])  #Import .set data
+
+signal_length = 180*256 # [n° of sample]
+
+sample = mne.io.read_raw_eeglab(sub_one_path) #Import EEGlab
+sample1 = sample[0][0]
+sample1 = sample1[0][0:signal_length]
+sr = sample.info["sfreq"]
+
+#%% cleaning
+prepro_sample, prepro_info = nk.ecg_process(sample1, sampling_rate=256, method='neurokit') #ECG preprocessing
+rr_intervals = prepro_sample['ECG_R_Peaks'] #vector of R peaks (TRUE = R peaks in the corrisponding signal's sample, FLASE = no R peaks in the corresponding signal's sample)
+
+#Extraction of the timing of the R peaks
+peaks_ts = []
+for idx, peak in enumerate(rr_intervals):
+    if peak == 1:
+        peaks_ts.append(idx/sr)
+differences = np.diff(peaks_ts) # RR series
+
+peaks_ts = peaks_ts[:-1] #removal of last time-values since each RR value is a difference between two peaks
+interpolation_function = interp1d(peaks_ts, differences, kind='cubic', fill_value='extrapolate')#cubic interpolation
+new_time = np.arange(peaks_ts[0], peaks_ts[-1], 1.0 / sr) #time-vector
+rr_resample = interpolation_function(new_time) #interpolation of RR serie
+
+fig,  axs = plt.subplots(2)
+axs[0].plot(peaks_ts, differences,'o')
+axs[0].set_title("Original signal")
+plt.xlabel("Time (s)")
+axs[1].plot(new_time, rr_resample, 'o')
+axs[1].set_title("Resampled signal")
+plt.xlabel("Time (s)")
+
+
+hr_rate = prepro_sample['ECG_Rate'] #extraction of heart rate
+N = int(np.round(4*sr)) #Averago in over window of 4seconds, from [https://doi.org/10.3791%2F55863]
+hr_rate_avg = np.convolve(hr_rate, np.ones(N)/N, mode='valid')
+
+fig, axs = plt.subplots(3)
+fig.suptitle('RR vs HR')
+axs[0].plot(rr_resample)
+axs[0].set_title("Resampled RR")
+plt.xlabel("Time (s)")
+axs[1].plot(hr_rate)
+axs[1].set_title("Heart Rate")
+plt.xlabel("Time (s)")
+axs[2].plot(hr_rate_avg[:])
+axs[2].set_title("Smoothed Heart Rate")
+plt.xlabel("Time (s)")
+
+#%% RR processing 
+
+lc = 0.04
+hc = 0.4
+RR_filt = nk.signal_filter(rr_resample, 
+                          sampling_rate = sr, 
+                          lowcut =lc, 
+                          highcut=hc, 
+                          method ='butterworth', 
+                          order=2,
+                          show=True
+                          )
+
+#%% hilbert on RR
+y = hilbert(RR_filt) #Hilbert transform
+amp = np.abs(y) #Instantaneous amplitude
+phase = np.unwrap(np.angle(y)) #Instantaneous phase
+freq = sr/(2*np.pi)*np.diff(phase) #Instantaneous frequenzy
+
+fig, (ax0, ax1) = plt.subplots(nrows=2)
+ax0.plot(new_time, RR_filt, label='rr_resample')
+ax0.plot(new_time, amp, label='envelope')
+ax0.set_xlabel("time in seconds")
+ax0.legend()
+ax1.plot(new_time[1:], freq)
+ax1.set_xlabel("time in seconds")
+fig.tight_layout()
+
+#%% wavelet
+
+# Select foi and number of cycles per frequency
+freqs = np.arange(lc, hc, 0.02)
+n_cycles =  sr / 2
+
+# compute wavelets 
+Ws = mne.time_frequency.morlet(sr, freqs, n_cycles=n_cycles, sigma=None, zero_mean=True)
+
+X = RR_filt #Select RR_filt, hr_rate, hr_rate_avg
+X = np.reshape(X, (1,X.shape[0]))
+# Compute tfr 
+tfr = mne.time_frequency.tfr.cwt(X, Ws, use_fft=True, mode='same', decim=1)
+tfr= np.reshape(tfr, (tfr.shape[1], tfr.shape[2]))
+phase = np.squeeze(np.angle(tfr))
+
+# Create a figure
+fig, axs = plt.subplots(3)
+
+# First subplot
+axs[0].plot( new_time[:], RR_filt[:])
+axs[0].set_title("Signal")
+plt.xlabel("Time (s)")
+plt.ylabel("Amplitude")
+
+# Second subplot
+axs[1].pcolormesh( new_time[:], freqs, np.abs(tfr[:,:]))
+axs[1].set_title("Scalogram")
+plt.axis('tight')
+plt.xlabel("Time (s)")
+plt.ylabel("Frequency (Hz)")
+#plt.yscale("log")
+
+# Third subplot
+axs[2].plot(new_time[:], phase[5,:])
+plt.axis('tight')
+axs[2].set_title("Phase")
+plt.xlabel("Time (s)")
+plt.ylabel("Amplitude")
+
+# Adjust layout to prevent clipping of titles and labels
+plt.tight_layout()
+
+# Display the plot
+plt.show()
